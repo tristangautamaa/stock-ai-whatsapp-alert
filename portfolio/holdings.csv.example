@@ -1,0 +1,6 @@
+# Copy this file to holdings.csv and fill in your actual positions.
+# market: IDX (Indonesian stocks, .JK suffix) or US (NYSE/NASDAQ, no suffix)
+ticker,shares,avg_cost,market
+BBCA.JK,500,9200,IDX
+TLKM.JK,1000,3800,IDX
+AAPL,10,175.50,US
