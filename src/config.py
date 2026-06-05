@@ -23,8 +23,10 @@ class Settings(BaseSettings):
     signal_min_confidence: int = Field(default=60, ge=0, le=100)
     signal_alert_threshold: int = Field(default=65, ge=0, le=100)
 
-    # WhatsApp
-    whatsapp_provider: Literal["meta", "twilio"] = "meta"
+    # WhatsApp / notification provider
+    whatsapp_provider: Literal["meta", "twilio", "pywhatkit", "email"] = "meta"
+    whatsapp_recipient: str = ""  # E.164 format, used by pywhatkit
+    email_recipient: str = ""
     whatsapp_cloud_api_token: str = ""
     whatsapp_phone_number_id: str = ""
     whatsapp_recipient_number: str = ""

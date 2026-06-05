@@ -412,8 +412,8 @@ def _main() -> None:
     print(f"  Watchlist signals: {n_wl} actionable")
     if n_err:
         print(f"  Errors:           {n_err} (see 'errors' in JSON)")
-    print(f"\n  JSON  → {out_dir / f'morning_data_{date_str}.json'}")
-    print(f"  Brief → {out_dir / f'morning_brief_{date_str}.md'}")
+    print(f"\n  JSON  -> {out_dir / f'morning_data_{date_str}.json'}")
+    print(f"  Brief -> {out_dir / f'morning_brief_{date_str}.md'}")
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ from typing import Optional
 
 from loguru import logger
 
+from src.ai.macro_narrative import generate_macro_narrative
 from src.config import get_settings
 from src.notifications import get_notifier
 from src.report.build_brief import (
@@ -218,7 +219,7 @@ def _fmt_signals_section(
 
 # ── Message assembly ──────────────────────────────────────────────────────────
 
-def compose_morning_messages(bundle: dict) -> list[str]:
+def compose_morning_messages(bundle: dict, narrative: str = "") -> list[str]:
     """
     Compose 1–2 WhatsApp messages from a morning bundle dict.
 
@@ -236,7 +237,13 @@ def compose_morning_messages(bundle: dict) -> list[str]:
     pf_text    = _fmt_portfolio_section(bundle.get("portfolio"))
     sigs_text  = _fmt_signals_section(bundle.get("signals", {}))
 
-    part1 = "\n\n".join([header, macro_text, pf_text])
+    # Narrative is the lead section when present
+    lead_sections = [header]
+    if narrative:
+        lead_sections.append(f"🤖 *AI Analyst*\n{narrative}")
+    lead_sections += [macro_text, pf_text]
+
+    part1 = "\n\n".join(lead_sections)
     part2 = "\n\n".join([sigs_text, _DISCLAIMER])
 
     full = part1 + "\n\n" + part2
@@ -305,20 +312,32 @@ def send_morning_brief(
 
     date_str = bundle.get("date", "unknown")
 
+    logger.info("[send_brief] Generating macro narrative...")
+    narrative = generate_macro_narrative(bundle)
+
     logger.info("[send_brief] Composing WhatsApp message(s)...")
-    messages = compose_morning_messages(bundle)
+    messages = compose_morning_messages(bundle, narrative=narrative)
 
     # Always persist the full composed text
     _save_full_text(messages, date_str, out_dir)
 
     if settings.dry_run:
+        import sys
         sep = "=" * 60
+        # Reconfigure stdout for UTF-8 so emoji print correctly on Windows
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         for i, msg in enumerate(messages, 1):
             print(f"\n{sep}\n[DRY RUN] Message {i}/{len(messages)}\n{sep}\n{msg}\n{sep}")
         logger.info(f"[send_brief] DRY_RUN — {len(messages)} message(s) previewed, not sent")
         return True
 
     notifier = get_notifier(settings)
+
+    # Generate rich HTML output when using the email notifier
+    if hasattr(notifier, "write_html"):
+        notifier.write_html(bundle, narrative, date_str, out_dir)
+
     all_ok = True
     for i, msg in enumerate(messages, 1):
         logger.info(f"[send_brief] Sending message {i}/{len(messages)} ({len(msg)} chars)...")

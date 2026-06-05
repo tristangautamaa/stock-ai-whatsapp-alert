@@ -59,6 +59,10 @@ MANIFEST
 reports/*.json
 reports/*.md
 reports/*.txt
+reports/*.html
+
+# PyWhatKit session db
+PyWhatKit_DB.txt
 
 # Real portfolio holdings — keep positions local, commit only the example
 portfolio/holdings.csv
