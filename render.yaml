@@ -1,9 +1,8 @@
 services:
   - type: cron
     name: goldman-stanley-morning-brief
-    runtime: python
+    runtime: docker
     schedule: "50 23 * * 0-4"
-    buildCommand: pip install --only-binary=:all: pandas numpy && pip install -r requirements-render.txt
     startCommand: python -m src.report.send_brief
     envVars:
       - key: ANTHROPIC_API_KEY
