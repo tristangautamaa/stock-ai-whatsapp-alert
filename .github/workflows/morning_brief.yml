@@ -2,52 +2,28 @@ name: Morning Brief
 
 on:
   schedule:
-    # 07:00 Asia/Jakarta (WIB = UTC+7) on weekdays
-    - cron: "0 0 * * 1-5"
-  workflow_dispatch:   # allow manual trigger from GitHub UI
+    - cron: '50 23 * * 0-4'
+  workflow_dispatch:
 
 jobs:
   send-brief:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install -r requirements-render.txt
 
-      - name: Build morning data bundle
+      - name: Run morning brief
         env:
-          MARKET_DATA_PROVIDER: yfinance
-          DRY_RUN: "false"
-        run: python -m src.report.build_brief
-
-      - name: Send morning brief via WhatsApp
-        env:
-          WHATSAPP_PROVIDER: ${{ secrets.WHATSAPP_PROVIDER }}
-          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
-          WHATSAPP_ACCESS_TOKEN: ${{ secrets.WHATSAPP_ACCESS_TOKEN }}
-          WHATSAPP_TO_NUMBER: ${{ secrets.WHATSAPP_TO_NUMBER }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_FROM_NUMBER: ${{ secrets.TWILIO_FROM_NUMBER }}
-          TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
-          DRY_RUN: "false"
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WHATSAPP_PROVIDER: email
+          EMAIL_RECIPIENT: tristangautamaa@gmail.com
+          DRY_RUN: false
           MARKET_DATA_PROVIDER: yfinance
         run: python -m src.report.send_brief
